@@ -3,7 +3,7 @@ import { createUser, login } from "../contrrollers/userControl.js";
 
 const userRouter=express.Router();
 
-userRouter.post("/",createUser) 
+userRouter.post("/signup",createUser) 
 
 userRouter.post("/login",login)
 

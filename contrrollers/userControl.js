@@ -26,24 +26,24 @@ export function createUser(req,res){
 }
 
 export function login(req,res){
-    User.find({email : req.body.email}).then((user)=>{
-        if(user.length==0){
+    User.find({email : req.body.email}).then((users)=>{
+        if(users.length==0){
             res.json({
                 message:"user not found"
             })
         }else{
 
-            const user=user[0];  //compareSync eke wenne comparre wenna 
-            const isPasswordCorrect=bcrypt.compareSync(req.body.password,user.password)
+            const foundUser =users[0];  //compareSync eke wenne comparre wenna 
+            const isPasswordCorrect=bcrypt.compareSync(req.body.password,foundUser.password)
 
             if(isPasswordCorrect){
                 const token=jwt.sign({
-                   email:user.email,
-                   firstName:user.firstName,
-                   lastName:user.lastName,
-                   isBlocked:user.isBlocked,
-                   type:user.type,
-                   profilePic:user.profilePic
+                   email:foundUser .email,
+                   firstName:foundUser .firstName,
+                   lastName:foundUser .lastName,
+                   isBlocked:foundUser .isBlocked,
+                   type:foundUser .type,
+                   profilePic:foundUser .profilePic
                 },"secret")
 
                 res.json({
