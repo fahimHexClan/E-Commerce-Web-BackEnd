@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import studentRouter from "./routes/studentRouter.js";// .js aniwaren danna 
 import productRouter from "./routes/productRoute.js";
 import userRouter from "./routes/userRouter.js";
+import jwt from "jsonwebtoken"
 
 const app=express();
 const mongoDb_url="mongodb+srv://admin:1234@cluster0.pxi6g.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -17,6 +18,11 @@ connection.once("open",()=>{
 
 
 app.use(bodyParser.json());
+
+app.use((req,res,next)=>{
+    
+    
+})
 
 app.use("/api/students",studentRouter);
 app.use("/api/products",productRouter); 
