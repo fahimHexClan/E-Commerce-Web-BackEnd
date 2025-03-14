@@ -14,20 +14,21 @@ const productSchema=new mongoose.Schema({
         type : String //arrray ekek string values add wenne 
     }],
 
-    image :{
-        type : String,
-    },
+    image :[{
+        type : String
+    }],
 
     price :{
         type : Number,
         required : true
     },
     lastPrice :{
-        type : Number
+        type : Number,
+        required : true
     },
     
     stock :{
-        type : String,
+        type : Number,
         required : true
     },
     description : {
@@ -39,4 +40,4 @@ const productSchema=new mongoose.Schema({
 
 const Product=mongoose.model("Product",productSchema);
 
-export default Product
+export default Product 
