@@ -1,12 +1,11 @@
 import express from "express";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
-import productRouter from "./routes/productRoute.js";
 import userRouter from "./routes/userRouter.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
-dotenv.config();// env file config pannikolla use panrrradhu
+dotenv.config();// env file config pannakolla use panrrradhu
 
 const app=express();
 const mongoDb_url=process.env.Mongo_Db_Url // idula env file la ikira mongodb url a idhuku set pannradhu
@@ -34,12 +33,14 @@ app.use((req,res,next)=>{
     console.log(token)
 
     //Verifying the Token
+
     if(token != null){
       jwt.verify(token,process.env.SecretKey , (error,decoded)=>{
 
         if(!error){
           req.user = decoded    
-          //When you verify a JWT (JSON Web Token), the jwt.verify() function decodes the token and checks if it's valid. If the token is valid, the decoded object will contain the user's data that was originally used to generate the token.    
+          //When you verify a JWT (JSON Web Token), the jwt.verify() function decodes the token and checks if it's valid. If the token is valid, the decoded object will contain the user's data that was originally used to generate the token.   
+          console.log(decoded) 
         }
 
       })
@@ -49,7 +50,6 @@ app.use((req,res,next)=>{
 
 })
 
-app.use("/api/products",productRouter); 
 app.use("/api/users",userRouter);
 
 app.listen(5000,()=>{

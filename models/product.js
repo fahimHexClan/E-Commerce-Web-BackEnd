@@ -1,13 +1,42 @@
 import mongoose from "mongoose";
 
 const productSchema=new mongoose.Schema({
-    name:String,
-    price:Number,
-    description:String,
-    lastPrice:Number
+    productId :{
+        type : String,
+        required : true,
+        unique : true
+    },
+    productName :{
+        type : String,
+        required : true
+    },
+    altNames:[{
+        type : String //arrray ekek string values add wenne 
+    }],
+
+    image :{
+        type : String,
+    },
+
+    price :{
+        type : Number,
+        required : true
+    },
+    lastPrice :{
+        type : Number
+    },
+    
+    stock :{
+        type : String,
+        required : true
+    },
+    description : {
+        type : String,
+        required : true
+    }
+    
 })
 
-//student kiyana name database ekata model ekata create wenna
-const product=mongoose.model("product",productSchema);
+const Product=mongoose.model("Product",productSchema);
 
-export default product // defult eka file ekta eka parak witharai use karranna puluwan
+export default Product
