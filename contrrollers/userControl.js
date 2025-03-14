@@ -1,6 +1,9 @@
 import User from "../models/user.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import dotenv from "dotenv";
+
+dotenv.config();
 
 
 export function createUser(req,res){
@@ -44,7 +47,7 @@ export function login(req,res){
                    isBlocked:foundUser .isBlocked,
                    type:foundUser .type,
                    profilePic:foundUser .profilePic
-                },"secret")
+                },process.env.SecretKey)
 
                 res.json({
                     message:"login successful",

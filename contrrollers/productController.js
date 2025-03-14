@@ -1,16 +1,19 @@
 import Product from "../models/product.js";
 
-function getProducrts (req,res){
+async function  getProducrts (req,res){
+    try{
+    const productList=await Product.find();
 
-    Product.find().then((productList)=>{
-        res.json({
-            list:productList
-        })
-    }).catch((err)=>{
+    res.json({  
+        list:productList
+    })
+
+    }catch(err){
         res.json({
             message:"Product not found"
         })
-    })
+    }
+   
 }
 
 function createProduct(req,res){    
