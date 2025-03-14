@@ -22,15 +22,24 @@ connection.once("open",()=>{
 
 app.use(bodyParser.json());
 
+//This is a middleware function.It runs for every request before reaching the actual route.
+//req → Contains the request data (headers, body, params, etc.).res → Used to send a response to the client.
+//next() → Moves the request to the next middleware or route.
+
 app.use((req,res,next)=>{
+    //It gets the Authorization header from the request.
+    //.replace("Bearer ", ""):.If the token is in the format "Bearer <token>", this removes "Bearer " to extract the actual token.
+    //?. (Optional Chaining) prevents errors if header() returns null or undefined.
     const token = req.header("Authorization")?.replace("Bearer ","")
     console.log(token)
 
+    //Verifying the Token
     if(token != null){
       jwt.verify(token,process.env.SecretKey , (error,decoded)=>{
 
         if(!error){
-          req.user = decoded        
+          req.user = decoded    
+          //When you verify a JWT (JSON Web Token), the jwt.verify() function decodes the token and checks if it's valid. If the token is valid, the decoded object will contain the user's data that was originally used to generate the token.    
         }
 
       })
