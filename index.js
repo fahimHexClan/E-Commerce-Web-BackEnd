@@ -6,11 +6,14 @@ import productRouter from "./routes/productRouter.js";
 import orderRouter from "./routes/orderRouter.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import cors from "cors"
 
 dotenv.config();// env file config pannakolla use panrrradhu
 
 const app=express();
 const mongoDb_url=process.env.Mongo_Db_Url // idula env file la ikira mongodb url a idhuku set pannradhu
+
+app.use(cors());
 
 mongoose.connect(mongoDb_url,{});
 
