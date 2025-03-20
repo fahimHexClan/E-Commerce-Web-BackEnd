@@ -73,7 +73,14 @@ export function login(req,res){
 
                 res.json({
                     message:"login successful",
-                    token:token
+                    token:token,
+                    user :{
+                        firstName:foundUser.firstName,
+                        lastName:foundUser.lastName,
+                        type:foundUser.type,
+                        profilePic:foundUser.profilePic,
+                        email:foundUser.email
+                    }
                 })
             }else{
                 res.json({
