@@ -9,7 +9,7 @@ userRouter.post("/login",login)
 
 
 
-export default userRouter
+export default userRouter;
 /*{
     "email": "Fahim@example.com",
     "firstName": "John",
