@@ -44,7 +44,7 @@ import Order from "../models/order.js";
          name: product.productName,
          price: product.lastPrice,
          quantity: newOrderData.orderedItems[i].qty,
-         image: product.images[0],
+         image: product.image[0],
        };
      }
      console.log(newProductArray);
@@ -121,7 +121,7 @@ export async function getQuote(req, res) {
         price: product.lastPrice,
         labeledPrice: product.price,
         quantity: newOrderData.orderedItems[i].qty,
-        image: product.images[0],
+        image: product.image[0],
       };
     }
     console.log(newProductArray);

@@ -5,6 +5,6 @@ import express from 'express';
  
  orderRouter.post("/", createOrder)
  orderRouter.get("/", getOrders) 
- orderRouter.get("/quotes", getQuote)
+ orderRouter.post("/quote", getQuote)
  
  export default orderRouter;
