@@ -1,16 +1,16 @@
 import Order from "../models/order.js";
  import Product from "../models/product.js";
- import { isCustomer } from "./userController.js";
+ import { isAdmin,isCustomer } from "./userController.js";
 
  export async function createOrder(req, res) {
-  if (!isCustomer) {
-    res.json({
-      message: "Please login as customer to create orders",
+  if (!isCustomer(req)) {
+    return res.json({ 
+      message: "Please login as customer to create orders" 
     });
   }
+  
   try {
     const latestOrder = await Order.find().sort({ orderId: -1 }).limit(1);
-    console.log(latestOrder);
     let orderId;
     if (latestOrder.length == 0) {
       orderId = "CBC0001";
@@ -31,7 +31,7 @@ import Order from "../models/order.js";
        });
  
        if (product == null) {
-         res.json({
+         return res.json({
            message:
              "Product with id " +
              newOrderData.orderedItems[i].productId +
@@ -47,7 +47,7 @@ import Order from "../models/order.js";
          image: product.image[0],
        };
      }
-     console.log(newProductArray);
+    //  console.log(newProductArray);
      newOrderData.orderedItems = newProductArray;
 
      newOrderData.orderId = orderId;
@@ -66,14 +66,15 @@ import Order from "../models/order.js";
    }
  }
  export async function getOrders(req, res) {
-   
+  // console.log("req.user in getOrders:", req.user); // ADD THIS
+
      
   try {
     if (isCustomer(req)) {
     const orders = await Order.find({ email: req.user.email });
 
-    res.json(orders);
-    return;
+   return res.json(orders);
+    
     }else if(isAdmin(req)){
       const orders = await Order.find({});
       res.json(orders);
@@ -106,7 +107,7 @@ export async function getQuote(req, res) {
       });
 
       if (product == null) {
-        res.json({
+       return res.json({
           message:
             "Product with id " +
             newOrderData.orderedItems[i].productId +
@@ -134,6 +135,49 @@ export async function getQuote(req, res) {
       labeledTotal: labeledTotal,
     });
   } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+export async function updateOrder(req, res) {
+  if (!isAdmin(req)) {
+    res.json({
+      message: "Please login as admin to update orders",
+    });
+  }
+  
+  try {
+    const orderId = req.params.orderId;
+
+    const order = await Order.findOne({
+      orderId: orderId,
+    });
+
+    if (order == null) {
+      return  res.status(404).json({
+        message: "Order not found",
+      })
+      return;
+    }
+
+    const notes = req.body.notes;
+    const status = req.body.status;
+
+    const updateOrder = await Order.findOneAndUpdate(
+      { orderId: orderId },
+      { notes: notes, status: status }
+    );
+
+    res.json({
+      message: "Order updated",
+      updateOrder: updateOrder
+    });
+
+  }catch(error){
+
+    
     res.status(500).json({
       message: error.message,
     });

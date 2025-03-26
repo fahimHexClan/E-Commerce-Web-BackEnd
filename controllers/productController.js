@@ -98,8 +98,25 @@ export function deleteProduct(req, res) {
       
     }catch(e){
       res.status(500).json({
-        e
-      })
+        e,
+      });
     }
     
+  }
+  export async function searchProducts(req, res) {
+    const query = req.params.query;
+    try {
+      const products = await Product.find({
+        $or: [
+          { productName: { $regex: query, $options: "i" } },
+          { altNames: { $elemMatch: { $regex: query, $options: "i" } } },
+        ],
+      });
+  
+      res.json(products);
+    } catch (e) {
+      res.status(500).json({
+        e,
+      });
+    }
   }
