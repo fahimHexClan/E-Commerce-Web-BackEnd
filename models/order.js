@@ -55,7 +55,12 @@ import mongoose from "mongoose";
    phone : {
      type : String,
      required : true
-   }
+   },
+   total: {  // Added 'total' field
+    type: Number,
+    required: true,
+    default: 0
+  }
  })
  
  const Order = mongoose.model("orders",orderSchema);

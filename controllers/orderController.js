@@ -1,8 +1,9 @@
 import Order from "../models/order.js";
- import Product from "../models/product.js";
- import { isAdmin,isCustomer } from "./userController.js";
+import Product from "../models/product.js";
+import { isAdmin, isCustomer } from "./userController.js";
+import User from "../models/user.js";
 
- export async function createOrder(req, res) {
+export async function createOrder(req, res) {
   if (!isCustomer(req)) {
     return res.json({ 
       message: "Please login as customer to create orders" 
@@ -12,7 +13,7 @@ import Order from "../models/order.js";
   try {
     const latestOrder = await Order.find().sort({ orderId: -1 }).limit(1);
     let orderId;
-    if (latestOrder.length == 0) {
+    if (latestOrder.length === 0) {
       orderId = "CBC0001";
     } else {
       const currentOrderId = latestOrder[0].orderId;
@@ -22,67 +23,57 @@ import Order from "../models/order.js";
       orderId = "CBC" + newNumber;
     }
     const newOrderData = req.body;
- 
-     const newProductArray = [];
- 
-     for (let i = 0; i < newOrderData.orderedItems.length; i++) {
-       const product = await Product.findOne({
-         productId: newOrderData.orderedItems[i].productId,
-       });
- 
-       if (product == null) {
-         return res.json({
-           message:
-             "Product with id " +
-             newOrderData.orderedItems[i].productId +
-             " not found",
-         });
-         return;
-       }
- 
-       newProductArray[i] = {
-         name: product.productName,
-         price: product.lastPrice,
-         quantity: newOrderData.orderedItems[i].qty,
-         image: product.image[0],
-       };
-     }
-    //  console.log(newProductArray);
-     newOrderData.orderedItems = newProductArray;
 
-     newOrderData.orderId = orderId;
-     newOrderData.email = req.user.email;
- 
-     const order = new Order(newOrderData);
-     const savedOrder = await order.save();
-     res.json({
+    const newProductArray = [];
+    for (let i = 0; i < newOrderData.orderedItems.length; i++) {
+      const product = await Product.findOne({
+        productId: newOrderData.orderedItems[i].productId,
+      });
+
+      if (!product) {
+        return res.json({
+          message: `Product with id ${newOrderData.orderedItems[i].productId} not found`,
+        });
+      }
+
+      newProductArray[i] = {
+        name: product.productName,
+        price: product.lastPrice,
+        quantity: newOrderData.orderedItems[i].qty,
+        image: product.image[0],
+      };
+    }
+    newOrderData.orderedItems = newProductArray;
+    newOrderData.orderId = orderId;
+    newOrderData.email = req.user.email;
+    newOrderData.total = newProductArray.reduce((sum, item) => sum + (item.price * item.quantity || 0), 0); // Ensure valid calculation
+    newOrderData.date = new Date(); // Updated to use 'date' as per schema
+
+    const order = new Order(newOrderData);
+    const savedOrder = await order.save();
+    res.json({
       message: "Order created",
-       order : savedOrder
-     });
-   } catch (error) {
-     res.status(500).json({
-       message: error.message,
-     });
-   }
- }
- export async function getOrders(req, res) {
-  // console.log("req.user in getOrders:", req.user); // ADD THIS
+      order: savedOrder
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+}
 
-     
+export async function getOrders(req, res) {
   try {
     if (isCustomer(req)) {
-    const orders = await Order.find({ email: req.user.email });
-
-   return res.json(orders);
-    
-    }else if(isAdmin(req)){
+      const orders = await Order.find({ email: req.user.email });
+      return res.json(orders);
+    } else if (isAdmin(req)) {
       const orders = await Order.find({});
-      res.json(orders);
-      return;
-    }else{
-      res.json({
+      return res.json(orders);
+    } else {
+      return res.json({
         message: "Please login to view orders"
-      })
+      });
     }
   } catch (error) {
     res.status(500).json({
@@ -90,30 +81,24 @@ import Order from "../models/order.js";
     });
   }
 }
+
 export async function getQuote(req, res) {
-   
   try {
     const newOrderData = req.body;
 
     const newProductArray = [];
-
     let total = 0;
     let labeledTotal = 0;
-    console.log(req.body)
 
     for (let i = 0; i < newOrderData.orderedItems.length; i++) {
       const product = await Product.findOne({
         productId: newOrderData.orderedItems[i].productId,
       });
 
-      if (product == null) {
-       return res.json({
-          message:
-            "Product with id " +
-            newOrderData.orderedItems[i].productId +
-            " not found",
+      if (!product) {
+        return res.json({
+          message: `Product with id ${newOrderData.orderedItems[i].productId} not found`,
         });
-        return;
       }
       labeledTotal += product.price * newOrderData.orderedItems[i].qty;
       total += product.lastPrice * newOrderData.orderedItems[i].qty;
@@ -125,7 +110,6 @@ export async function getQuote(req, res) {
         image: product.image[0],
       };
     }
-    console.log(newProductArray);
     newOrderData.orderedItems = newProductArray;
     newOrderData.total = total;
 
@@ -143,43 +127,98 @@ export async function getQuote(req, res) {
 
 export async function updateOrder(req, res) {
   if (!isAdmin(req)) {
-    res.json({
+    return res.json({
       message: "Please login as admin to update orders",
     });
   }
   
   try {
     const orderId = req.params.orderId;
+    const order = await Order.findOne({ orderId });
 
-    const order = await Order.findOne({
-      orderId: orderId,
-    });
-
-    if (order == null) {
-      return  res.status(404).json({
+    if (!order) {
+      return res.status(404).json({
         message: "Order not found",
-      })
-      return;
+      });
     }
 
-    const notes = req.body.notes;
-    const status = req.body.status;
-
-    const updateOrder = await Order.findOneAndUpdate(
-      { orderId: orderId },
-      { notes: notes, status: status }
+    const { notes, status } = req.body;
+    const updatedOrder = await Order.findOneAndUpdate(
+      { orderId },
+      { notes, status },
+      { new: true, runValidators: true }
     );
 
     res.json({
       message: "Order updated",
-      updateOrder: updateOrder
+      order: updatedOrder
     });
-
-  }catch(error){
-
-    
+  } catch (error) {
     res.status(500).json({
       message: error.message,
     });
+  }
+}
+
+export async function getDashboardStats(req, res) {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ message: "Please login as admin to view dashboard stats" });
+    }
+
+    const totalProducts = await Product.countDocuments();
+    const totalOrders = await Order.countDocuments();
+    const totalCustomers = await User.countDocuments({ type: "customer" });
+
+    const revenueData = await Order.aggregate([
+      {
+        $addFields: {
+          calculatedTotal: {
+            $ifNull: [
+              "$total",
+              {
+                $reduce: {
+                  input: "$orderedItems",
+                  initialValue: 0,
+                  in: { $add: ["$$value", { $multiply: ["$$this.price", "$$this.quantity"] }] }
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$calculatedTotal" }
+        }
+      }
+    ]);
+    const totalRevenue = revenueData.length > 0 ? revenueData[0].totalRevenue : 0;
+    console.log("Revenue Data:", revenueData);
+
+    const recentOrders = await Order.find()
+      .sort({ date: -1 })
+      .limit(5)
+      .select("orderId email status date");
+
+    const orderTrends = await Order.aggregate([
+      { $match: { date: { $exists: true, $type: "date" } } },
+      { $group: { _id: { $month: "$date" }, orders: { $sum: 1 } } },
+      { $sort: { _id: 1 } }
+    ]);
+    console.log("Order Trends:", orderTrends);
+
+    res.status(200).json({
+      totalProducts,
+      totalOrders,
+      totalCustomers,
+      totalRevenue,
+      recentOrders,
+      orderTrends,
+    });
+  } catch (error) {
+    console.error("Dashboard stats error:", error);
+    res.status(500).json({ message: "Internal server error: " + error.message });
   }
 }

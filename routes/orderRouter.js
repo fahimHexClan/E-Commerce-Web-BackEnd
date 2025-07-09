@@ -1,5 +1,5 @@
 import express from 'express';
- import { createOrder, getOrders, getQuote , updateOrder} from '../controllers/orderController.js';
+ import { createOrder, getOrders, getQuote , updateOrder, getDashboardStats} from '../controllers/orderController.js';
  
  const orderRouter = express.Router();
  
@@ -7,5 +7,5 @@ import express from 'express';
  orderRouter.get("/", getOrders) 
  orderRouter.post("/quote", getQuote)
  orderRouter.put("/:orderId",updateOrder)
- 
+orderRouter.get("/admin/stats", getDashboardStats);
  export default orderRouter;

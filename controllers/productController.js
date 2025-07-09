@@ -3,25 +3,34 @@ import { isAdmin } from "./userController.js";
 
 export function createProduct(req, res) {
 
-    if (!isAdmin(req)) {
-        res.json({
-            message: "pls login as admin to add product",
+   if (!isAdmin(req)) {
+    return res.status(403).json({ message: "Please login as admin to add product" });
+  }
+
+  const newProduct = req.body;
+
+  const product = new Product(newProduct);
+
+  product
+    .save()
+    .then((savedProduct) => {
+      res.status(201).json({
+        message: "Product created successfully",
+        product: savedProduct,
+      });
+    })
+    .catch((error) => {
+      console.error("Product save error:", error); // Log error for debugging
+      if (error.code === 11000) {
+        // Handle duplicate productId
+        res.status(400).json({ message: "Product ID already exists" });
+      } else {
+        // Handle other errors (e.g., validation)
+        res.status(500).json({
+          message: "Product creation failed",
+          error: error.message,
         });
-        return;
-    }
-
-    const newProduct = req.body;
-
-    const product = new Product(newProduct);
-
-    product.save().then((product) => {
-        res.json({
-            message: "product created successfully",
-        })    
-    }).catch((error) => {
-        res.json({
-            message: "product creation failed",
-        });
+      }
     });
 }
 
