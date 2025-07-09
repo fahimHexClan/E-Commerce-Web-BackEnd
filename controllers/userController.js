@@ -100,7 +100,7 @@ export function isAdmin(req) {
     return false;
   }
 
-  if (req.user.type != "admin") {
+  if (req.user.type !== "admin") {
     return false;
   }
 
@@ -112,7 +112,7 @@ export function isCustomer(req) {
     return false;
   }
 
-  if (req.user.type != "customer") {
+  if (req.user.type !== "customer") {
     return false;
   }
 
@@ -188,5 +188,75 @@ console.log(token)
     res.json({
       message: "Google login failed",
     });
+  }
+}
+// New functions for customer management
+export async function getCustomers(req, res) {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ message: "Please login as admin to view customers" });
+    }
+
+    const customers = await User.find({ type: "customer" });
+    res.status(200).json(customers);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error: " + error.message });
+  }
+}
+
+export async function updateCustomer(req, res) {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ message: "Please login as admin to update customers" });
+    }
+
+    const customerId = req.params.customerId;
+    const { status, notes, phone, address } = req.body;
+    const updatedCustomer = await User.findOneAndUpdate(
+      { _id: customerId, type: "customer" },
+      { status, notes, phone, address },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCustomer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    res.json({
+      message: "Customer updated successfully",
+      customer: updatedCustomer,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error: " + error.message });
+  }
+}
+
+export async function exportCustomers(req, res) {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ message: "Please login as admin to export customers" });
+    }
+
+    const customers = await User.find({ type: "customer" });
+    const csv = [
+      ["Customer ID", "Name", "Email", "Status", "Phone", "Address", "Notes"],
+      ...customers.map((c) => [
+        c._id,
+        `${c.firstName} ${c.lastName}`,
+        c.email,
+        c.status || "Active",
+        c.phone || "N/A",
+        c.address || "N/A",
+        c.notes || "None",
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename=customers_${new Date("2025-07-07T19:30:00+0530").toISOString().split("T")[0]}.csv`);
+    res.status(200).send(csv);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error: " + error.message });
   }
 }

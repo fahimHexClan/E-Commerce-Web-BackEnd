@@ -1,5 +1,5 @@
 import express from "express";
-import { createUser, login , googleLogin} from "../controllers/userController.js";
+import { createUser, login ,isAdmin,isCustomer, googleLogin,getCustomers,updateCustomer,exportCustomers} from "../controllers/userController.js";
 
 const userRouter=express.Router();
 
@@ -8,6 +8,12 @@ userRouter.post("/signup",createUser)
 userRouter.post("/login",login)
 
 userRouter.post("/google", googleLogin)
+
+userRouter.get("/customers", getCustomers);
+
+userRouter.put("/customers/:customerId", updateCustomer);
+
+userRouter.get("/customers/export", exportCustomers);
 
 
 
